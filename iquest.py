@@ -41,22 +41,24 @@ def list_child_collections(collection):
     return getIquestOutput(cmd)
 
 def collection_exists(coll):
-    cmd = ["iquest",  "\"%s\"",  "select count(COLL_ID) where COLL_NAME = '"+ coll + "'\""]
+    cmd = ["iquest",  "\"%s\"",  "\"select count(COLL_ID) where COLL_NAME = '"+ coll + "'\""]
     logger.debug( " ".join(cmd))
         
     out = getIquestOutput(cmd)
-    if out[0] == "1":
+    out = int(out[0])
+    if out > 0:
         return True
     else:
         return False
     
 def dataobject_exists(dataobject):
     (head, tail) = os.path.split(dataobject)
-    cmd = ["iquest",  "\"%s\"",  "select count(DATA_ID) where COLL_NAME = '"+ head + "' and DATA_NAME = '" + tail + "'\""]
+    cmd = ["iquest",  "\"%s\"",  "\"select count(DATA_ID) where COLL_NAME = '"+ head + "' and DATA_NAME = '" + tail + "'\""]
     logger.debug( " ".join(cmd))
         
     out = getIquestOutput(cmd)
-    if out[0] == "1":
+    out = int(out[0])
+    if out > 0:
         return True
     else:
         return False
@@ -66,7 +68,8 @@ def child_collections_exist(collection):
     logger.debug( " ".join(cmd))
         
     out = getIquestOutput(cmd)
-    if out[0] == "1":
+    out = int(out[0])
+    if out > 0:
         return True
     else:
         return False
@@ -77,7 +80,8 @@ def dataobject_has_metadata(dataobject):
     logger.debug( " ".join(cmd))
         
     out = getIquestOutput(cmd)
-    if out[0] != "0":
+    out = int(out[0])
+    if out > 0:
         return True
     else:
         return False
@@ -88,7 +92,8 @@ def dataobject_has_attribute(dataobject,  attr):
     logger.debug( " ".join(cmd))
         
     out = getIquestOutput(cmd)
-    if out[0] != "0":
+    out = int(out[0])
+    if out > 0:
         return True
     else:
         return False

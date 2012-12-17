@@ -54,14 +54,23 @@ class ApplyMetadataTemplateVisitor(CollectionVisitor):
 
             # get avus of the template object
             avus = iquest.get_metadata(template)
+            
+            modify_avus = []
+            # don't touch avus with Ida default settings
+            for avu in avus:
+                if avu.a in ["Contact", "Metadata identifier", "Identifier.version",  "status",  "Identifier.series"]:
+                    continue
+                if avu.v != "MISSING_METADATA":
+                    modify_avus.append(avu)
+            
             for target in dataobjects:
                 # don't modify the templates
                 (head, tail) = os.path.split(target)
                 if  tail != COLL_META_TEMPLATE and target != template:
                     if self.options.delete:
-                        imeta.delete(target, avus,  self.options.dryrun)
+                        imeta.delete(target, modify_avus,  self.options.dryrun)
                     else:
-                        imeta.delete(target, avus,  self.options.dryrun)
+                        imeta.delete(target, modify_avus,  self.options.dryrun)
                         imeta.copy(template,  target,  self.options.dryrun)
 
 
