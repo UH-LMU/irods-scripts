@@ -46,7 +46,8 @@ def icd2ipwd():
     
     # find the latest .irodsEnv file
     for e in envfiles:
-        if e.startswith(".irodsEnv") != -1:
+        if e.startswith(".irodsEnv"):
+            print logger.debug(e)
             currentEnv = e.rstrip()
             break
     
