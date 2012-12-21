@@ -9,8 +9,8 @@ import imeta
 import iquest
 import iutils
 
-IRODS_DEFAULT_HOST='irods://lmu-omero1.biocenter.helsinki.fi'
-BISQUE_DEFAULT_HOST='http://lmu-omero1.biocenter.helsinki.fi:8000'
+IRODS_DEFAULT_HOST='irods://ida.csc.fi'
+BISQUE_DEFAULT_HOST='http://lmu-bisque1.biocenter.helsinki.fi'
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ def main():
     if not irods_host or not  irods_host.startswith('irods://'):
         parser.error ('must include a valid iRODS url i.e. %s' % IRODS_DEFAULT_HOST)
     if options.bisque_host:
-        irods_host = options.bisque_host
+        bisque_host = options.bisque_host
     if not bisque_host or not  (bisque_host.startswith('http://') or bisque_host.startswith('https://') ):
         parser.error ("Invalid Bisque host URL '%s'.\nPlease specify valid HTTP URL i.e. '%s'." % (bisque_host,  BISQUE_DEFAULT_HOST))
     if bisque_host.startswith('http://') :
