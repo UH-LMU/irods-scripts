@@ -23,6 +23,19 @@ DEFAULT_COLL_META_TEMPLATE = "collectionMetadataTemplate"
 # attributes that are set by Ida
 ATTRIBUTES_SET_BY_IDA = ["Contact",  "Metadata modified",  "Modified",  "Metadata identifier",  "Identifier.version",  "Identifier.series" ]
 
+def applyMetadata2DataObject(avus,  target):
+    (head, tail) = os.path.split(target)
+    # don't touch template files
+    if  tail != DEFAULT_COLL_META_TEMPLATE and target != template:
+        for avu in avus:
+            # don't touch metadata set by Ida
+            if avu.a not in ATTRIBUTES_SET_BY_IDA:
+                if self.options.delete:
+                    imeta.delete(target, avu,  self.options.dryrun)
+                else:
+                    imeta.delete(target, avu,  self.options.dryrun)
+                    imeta.copy(template,  target,  self.options.dryrun)
+
 class CollectionVisitor:
     def visit(self, collection):
         print collection
@@ -60,18 +73,7 @@ class ApplyMetadataTemplateVisitor(CollectionVisitor):
         avus = iquest.get_metadata(template)
         
         for target in dataobjects:
-            (head, tail) = os.path.split(target)
-            # don't touch template files
-            if  tail != DEFAULT_COLL_META_TEMPLATE and target != template:
-                for avu in avus:
-                    # don't touch metadata set by Ida
-                    if avu.a not in ATTRIBUTES_SET_BY_IDA:
-                        if self.options.delete:
-                            imeta.delete(target, avu,  self.options.dryrun)
-                        else:
-                            imeta.delete(target, avu,  self.options.dryrun)
-                            imeta.copy(template,  target,  self.options.dryrun)
-
+            applyMetadata2DataObject(avus,  target)
 
 def Walk(root,  visitor):
     # process this collections
@@ -118,20 +120,43 @@ def main():
         options.template = DEFAULT_COLL_META_TEMPLATE
 
     # check if template is an absolute path
-    if not iquest.dataobject_exists(options.template):
-        logging.info(options.template + "is not an absolute path, searching in current iRODS directory " + ipwd + ".")
+    if iquest.dataobject_exists(options.template):
+        logging.info("Using template " + options.template)
+    else:
+        logging.info(options.template + " is not an absolute path, searching in current iRODS directory " + ipwd + ".")
         options.template = ipwd + "/" + options.template
         if not iquest.dataobject_exists(options.template):
-            logging.error("No template found.")
-            sys.exit(1)
+            parser.error("No template found.")
 
-    # check if target is an absolute path
-    
+    # check if target is an absolute path (file or folder)
+    # start with assumption that user gave path relative to ipwd
+    TARGET_IS_A_SINGLE_FILE = False
+    if options.target:
+        if iquest.collection_exists(ipwd + "/" + options.target):
+            options.target = ipwd + "/" + options.target
+        elif iquest.collection_exists(options.target):
+            True
+        elif iquest.dataobject_exists(ipwd + "/" + options.target):
+            TARGET_IS_A_SINGLE_FILE = True
+            options.target = ipwd + "/" + options.target
+        elif iquest.dataobject_exists(options.target):
+            TARGET_IS_A_SINGLE_FILE = True
+        else:
+            parser.error("Target not found")
+        
+        logging.info("Applying to target " + options.target)
+
     # if no target collection given, use the current iRODS working directory
-    if not options.target:
-        logging.warning("Using current iRODS working directory (" + options.target + ") as target.")
+    else:
+        logging.info("Using current iRODS working directory (" + ipwd + ") as target.")
         options.target = ipwd
    
+    if TARGET_IS_A_SINGLE_FILE:
+        # get avus of the template object
+        avus = iquest.get_metadata(template)
+        applyMetadata2DataObject(avus,  options.target)
+        sys.exit(0)
+
     visitor = ApplyMetadataTemplateVisitor(options)
     #visitor = CollectionVisitor()
     if options.extra_recursive:
