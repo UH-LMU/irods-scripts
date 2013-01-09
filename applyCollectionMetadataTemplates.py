@@ -35,34 +35,35 @@ class ApplyMetadataTemplateVisitor(CollectionVisitor):
         if self.options.template:
             template = self.options.template
         else:
+            logging.info("Using default template file 'collectionMetadataTemplate'.")
             test = collection + "/" + COLL_META_TEMPLATE
             if iquest.dataobject_exists(test):
                 template = test
         
-            if not template:
-                logging.error("No template object found. Default is 'collectionMetadataTemplate'.")
-                return
+        if not template:
+            logging.error("No template object found.")
+            return
                 
-            if not iquest.dataobject_has_metadata(template):
-                logging.warning("Template object " + template + " has no metadata.")
-                return
+        if not iquest.dataobject_has_metadata(template):
+            logging.error("Template object " + template + " has no metadata.")
+            return
 
-            if self.options.recursive:
-                dataobjects = iquest.list_dataobjects_recursive(collection)
-            else:
-                dataobjects =  iquest.list_dataobjects(collection)
+        if self.options.recursive:
+            dataobjects = iquest.list_dataobjects_recursive(collection)
+        else:
+            dataobjects =  iquest.list_dataobjects(collection)
 
-            # get avus of the template object
-            avus = iquest.get_metadata(template)
-            for target in dataobjects:
-                # don't modify the templates
-                (head, tail) = os.path.split(target)
-                if  tail != COLL_META_TEMPLATE and target != template:
-                    if self.options.delete:
-                        imeta.delete(target, avus,  self.options.dryrun)
-                    else:
-                        imeta.delete(target, avus,  self.options.dryrun)
-                        imeta.copy(template,  target,  self.options.dryrun)
+        # get avus of the template object
+        avus = iquest.get_metadata(template)
+        for target in dataobjects:
+            # don't modify the templates
+            (head, tail) = os.path.split(target)
+            if  tail != COLL_META_TEMPLATE and target != template:
+                if self.options.delete:
+                    imeta.delete(target, avus,  self.options.dryrun)
+                else:
+                    imeta.delete(target, avus,  self.options.dryrun)
+                    imeta.copy(template,  target,  self.options.dryrun)
 
 
 def Walk(root,  visitor):
@@ -101,19 +102,18 @@ def main():
     if not options.target:
         # When the python script is started, it has own new shell, with a new irods environment
         # where the current working directory is ~. 
-        # This command checks the
+        # This command checks the current working directory of the parent shell from the .irodsEnv files.
         iutils.icd2ipwd()
         options.target = iutils.ipwd()
         logging.warning("Using current iRODS working directory (" + options.target + ") as target.")
-
-    # Get the AVUs in the template object.
    
     visitor = ApplyMetadataTemplateVisitor(options)
+    visitor.visit(options.target)
 #    visitor = CollectionVisitor()
-    if options.recursive:
-        Walk(options.target,  visitor)
-    else:
-        visitor.visit(options.target)
+#    if options.recursive:
+#        Walk(options.target,  visitor)
+#    else:
+#        visitor.visit(options.target)
     
 
 if __name__ == "__main__":
