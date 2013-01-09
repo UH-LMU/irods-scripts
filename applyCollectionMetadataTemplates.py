@@ -13,7 +13,7 @@ import iutils
 
 usage ="""%prog [options]
 
-Copy metadata from file 'collectionMetadataTemplate' to the current collection (iutils.ipwd) and subcollections. Repeat in subcollections.
+Copy metadata from a template to a target. The target can be a single data object or a collection. The default target is the current collection (ipwd).
 Run '%prog -h' for options.
 """
 
@@ -23,15 +23,18 @@ DEFAULT_COLL_META_TEMPLATE = "collectionMetadataTemplate"
 # attributes that are set by Ida
 ATTRIBUTES_SET_BY_IDA = ["Contact",  "Metadata modified",  "Modified",  "Metadata identifier",  "Identifier.version",  "Identifier.series" ]
 
-def applyMetadata2DataObject(avus,  target,  dryrun):
+def addMetadata2DataObject(avus,  target,  dryrun):
     for avu in avus:
         # don't touch metadata set by Ida
         if avu.a not in ATTRIBUTES_SET_BY_IDA:
-            if self.options.delete:
-                imeta.delete(target, avu,  dryrun)
-            else:
-                imeta.delete(target, avu,  dryrun)
-                imeta.add(target, avu, dryrun)
+            imeta.delete(target, avu,  dryrun)
+            imeta.add(target, avu, dryrun)
+
+def deleteMetadataFromDataObject(avus,  target,  dryrun):
+    for avu in avus:
+        # don't touch metadata set by Ida
+        if avu.a not in ATTRIBUTES_SET_BY_IDA:
+            imeta.delete(target, avu,  dryrun)
 
 class CollectionVisitor:
     def visit(self, collection):
@@ -73,8 +76,11 @@ class ApplyMetadataTemplateVisitor(CollectionVisitor):
             (head, tail) = os.path.split(target)
             # don't touch template files
             if  tail != DEFAULT_COLL_META_TEMPLATE and target != template:
-                applyMetadata2DataObject(avus,  target,  self.options.dryrun)
-
+                if self.options.delete:
+                    deleteMetadataFromDataObject(avus,  target,  self.options.dryrun)
+                else:
+                    addMetadata2DataObject(avus,  target,  self.options.dryrun)
+                    
 def Walk(root,  visitor):
     # process this collections
     visitor.visit(root)
@@ -126,7 +132,7 @@ def main():
         logging.info(options.template + " is not an absolute path, searching in current iRODS directory " + ipwd + ".")
         options.template = ipwd + "/" + options.template
         if not iquest.dataobject_exists(options.template):
-            parser.error("No template found.")
+            parser.error("Template " + options.template + " not found.")
 
     # check if target is an absolute path (file or folder)
     # start with assumption that user gave path relative to ipwd
@@ -157,7 +163,10 @@ def main():
     if TARGET_IS_A_SINGLE_FILE:
         # get avus of the template object
         avus = iquest.get_metadata(options.template)
-        applyMetadata2DataObject(avus,  options.target,  options.dryrun)
+        if options.delete:
+            deleteMetadataFromDataObject(avus,  options.target,  options.dryrun)
+        else:
+            addMetadata2DataObject(avus,  options.target,  options.dryrun)
         sys.exit(0)
 
     visitor = ApplyMetadataTemplateVisitor(options)
