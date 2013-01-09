@@ -23,18 +23,15 @@ DEFAULT_COLL_META_TEMPLATE = "collectionMetadataTemplate"
 # attributes that are set by Ida
 ATTRIBUTES_SET_BY_IDA = ["Contact",  "Metadata modified",  "Modified",  "Metadata identifier",  "Identifier.version",  "Identifier.series" ]
 
-def applyMetadata2DataObject(avus,  target):
-    (head, tail) = os.path.split(target)
-    # don't touch template files
-    if  tail != DEFAULT_COLL_META_TEMPLATE and target != template:
-        for avu in avus:
-            # don't touch metadata set by Ida
-            if avu.a not in ATTRIBUTES_SET_BY_IDA:
-                if self.options.delete:
-                    imeta.delete(target, avu,  self.options.dryrun)
-                else:
-                    imeta.delete(target, avu,  self.options.dryrun)
-                    imeta.copy(template,  target,  self.options.dryrun)
+def applyMetadata2DataObject(avus,  target,  dryrun):
+    for avu in avus:
+        # don't touch metadata set by Ida
+        if avu.a not in ATTRIBUTES_SET_BY_IDA:
+            if self.options.delete:
+                imeta.delete(target, avu,  dryrun)
+            else:
+                imeta.delete(target, avu,  dryrun)
+                imeta.add(target, avu, dryrun)
 
 class CollectionVisitor:
     def visit(self, collection):
@@ -73,7 +70,10 @@ class ApplyMetadataTemplateVisitor(CollectionVisitor):
         avus = iquest.get_metadata(template)
         
         for target in dataobjects:
-            applyMetadata2DataObject(avus,  target)
+            (head, tail) = os.path.split(target)
+            # don't touch template files
+            if  tail != DEFAULT_COLL_META_TEMPLATE and target != template:
+                applyMetadata2DataObject(avus,  target,  self.options.dryrun)
 
 def Walk(root,  visitor):
     # process this collections
@@ -150,11 +150,14 @@ def main():
     else:
         logging.info("Using current iRODS working directory (" + ipwd + ") as target.")
         options.target = ipwd
-   
+
+    if options.template == options.target:
+        parser.error("Template and target are same.")
+
     if TARGET_IS_A_SINGLE_FILE:
         # get avus of the template object
-        avus = iquest.get_metadata(template)
-        applyMetadata2DataObject(avus,  options.target)
+        avus = iquest.get_metadata(options.template)
+        applyMetadata2DataObject(avus,  options.target,  options.dryrun)
         sys.exit(0)
 
     visitor = ApplyMetadataTemplateVisitor(options)
