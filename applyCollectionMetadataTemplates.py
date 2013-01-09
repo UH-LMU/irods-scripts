@@ -18,7 +18,7 @@ Run '%prog -h' for options.
 """
 
 # file used to store collection metadata
-COLL_META_TEMPLATE = "collectionMetadataTemplate"
+DEFAULT_COLL_META_TEMPLATE = "collectionMetadataTemplate"
 
 # attributes that are set by Ida
 ATTRIBUTES_SET_BY_IDA = ["Contact",  "Metadata modified",  "Modified",  "Metadata identifier",  "Identifier.version",  "Identifier.series" ]
@@ -38,7 +38,7 @@ class ApplyMetadataTemplateVisitor(CollectionVisitor):
             template = self.options.template
         else:
             logging.info("Using default template file 'collectionMetadataTemplate'.")
-            test = collection + "/" + COLL_META_TEMPLATE
+            test = collection + "/" + DEFAULT_COLL_META_TEMPLATE
             if iquest.dataobject_exists(test):
                 template = test
         
@@ -62,7 +62,7 @@ class ApplyMetadataTemplateVisitor(CollectionVisitor):
         for target in dataobjects:
             (head, tail) = os.path.split(target)
             # don't touch template files
-            if  tail != COLL_META_TEMPLATE and target != template:
+            if  tail != DEFAULT_COLL_META_TEMPLATE and target != template:
                 for avu in avus:
                     # don't touch metadata set by Ida
                     if avu.a not in ATTRIBUTES_SET_BY_IDA:
@@ -106,14 +106,31 @@ def main():
     else:
         logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.WARNING)
     
+    # When the python script is started, it has own new shell, with a new irods environment
+    # where the current working directory is ~. 
+    # This command checks the current working directory of the parent shell from the .irodsEnv files.
+    iutils.icd2ipwd()
+    ipwd= iutils.ipwd()
+
+    # check if template was given
+    if not options.template:
+        logging.info("No template given, using default (" + DEFAULT_COLL_META_TEMPLATE+ ").")
+        options.template = DEFAULT_COLL_META_TEMPLATE
+
+    # check if template is an absolute path
+    if not iquest.dataobject_exists(options.template):
+        logging.info(options.template + "is not an absolute path, searching in current iRODS directory " + ipwd + ".")
+        options.template = ipwd + "/" + options.template
+        if not iquest.dataobject_exists(options.template):
+            logging.error("No template found.")
+            sys.exit(1)
+
+    # check if target is an absolute path
+    
     # if no target collection given, use the current iRODS working directory
     if not options.target:
-        # When the python script is started, it has own new shell, with a new irods environment
-        # where the current working directory is ~. 
-        # This command checks the current working directory of the parent shell from the .irodsEnv files.
-        iutils.icd2ipwd()
-        options.target = iutils.ipwd()
         logging.warning("Using current iRODS working directory (" + options.target + ") as target.")
+        options.target = ipwd
    
     visitor = ApplyMetadataTemplateVisitor(options)
     #visitor = CollectionVisitor()
