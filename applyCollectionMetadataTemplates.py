@@ -20,6 +20,8 @@ Run '%prog -h' for options.
 # file used to store collection metadata
 COLL_META_TEMPLATE = "collectionMetadataTemplate"
 
+# attributes that are set by Ida
+ATTRIBUTES_SET_BY_IDA = ["Contact",  "Metadata modified",  "Modified",  "Metadata identifier",  "Identifier.version",  "Identifier.series" ]
 
 class CollectionVisitor:
     def visit(self, collection):
@@ -48,6 +50,7 @@ class ApplyMetadataTemplateVisitor(CollectionVisitor):
             logging.error("Template object " + template + " has no metadata.")
             return
 
+        # get the target dataobjects
         if self.options.recursive:
             dataobjects = iquest.list_dataobjects_recursive(collection)
         else:
@@ -55,15 +58,19 @@ class ApplyMetadataTemplateVisitor(CollectionVisitor):
 
         # get avus of the template object
         avus = iquest.get_metadata(template)
+        
         for target in dataobjects:
-            # don't modify the templates
             (head, tail) = os.path.split(target)
+            # don't touch template files
             if  tail != COLL_META_TEMPLATE and target != template:
-                if self.options.delete:
-                    imeta.delete(target, avus,  self.options.dryrun)
-                else:
-                    imeta.delete(target, avus,  self.options.dryrun)
-                    imeta.copy(template,  target,  self.options.dryrun)
+                for avu in avus:
+                    # don't touch metadata set by Ida
+                    if avu.a not in ATTRIBUTES_SET_BY_IDA:
+                        if self.options.delete:
+                            imeta.delete(target, avu,  self.options.dryrun)
+                        else:
+                            imeta.delete(target, avu,  self.options.dryrun)
+                            imeta.copy(template,  target,  self.options.dryrun)
 
 
 def Walk(root,  visitor):
@@ -83,6 +90,7 @@ def main():
     parser.add_option('-a', '--template',  help='iRODS file with template metadata (default ./collectionMetadataTemplate).')
     parser.add_option('-b', '--target',  help='iRODS file or collection where metadata will be copied (default `ipwd`).')
     parser.add_option('-r', '--recursive', action="store_true", default=False, help="Process also subcollections.")
+    parser.add_option('-R', '--extra_recursive', action="store_true", default=False, help="Apply metadata from 'collectionMetadataTemplate' files in subcollections.")
     parser.add_option('-d', '--delete', action="store_true", default=False, help="Delete template file metadata attributes from the target.")
     parser.add_option('-n', '--dryrun', action="store_true", default=False, help="Print actions but do not execute.")
     parser.add_option('-v', '--verbose', action="store_true", default=False, help="")
@@ -108,12 +116,11 @@ def main():
         logging.warning("Using current iRODS working directory (" + options.target + ") as target.")
    
     visitor = ApplyMetadataTemplateVisitor(options)
-    visitor.visit(options.target)
-#    visitor = CollectionVisitor()
-#    if options.recursive:
-#        Walk(options.target,  visitor)
-#    else:
-#        visitor.visit(options.target)
+    visitor = CollectionVisitor()
+    if options.extra_recursive:
+        Walk(options.target,  visitor)
+    else:
+        visitor.visit(options.target)
     
 
 if __name__ == "__main__":

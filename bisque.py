@@ -74,9 +74,10 @@ class BisqueConnection:
                 # store Bisque attributes in iRODS metadata
                 if iquest.dataobject_has_attribute(irods_file,  ATTR_BISQUE_URI):
                     logging.warning("File '" + irods_file + "' was already registered in Bisque.")
-                    imeta.delete(irods_file, [AVU(ATTR_BISQUE_URI,"", ""), AVU(ATTR_BISQUE_RESOURCE_UNIQ,"", "")])
-                imeta.add(irods_file, ATTR_BISQUE_URI,  uri)
-                imeta.add(irods_file, ATTR_BISQUE_RESOURCE_UNIQ,  resource_uniq)
+                    imeta.delete(irods_file, AVU(ATTR_BISQUE_URI,"", ""))
+                    imeta.delete(irods_file, AVU(ATTR_BISQUE_RESOURCE_UNIQ,"", ""))
+                imeta.add(irods_file, AVU(ATTR_BISQUE_URI,  uri))
+                imeta.add(irods_file, AVU(ATTR_BISQUE_RESOURCE_UNIQ,  resource_uniq))
 
         else:
             logger.info("Unsupported file format, skipping " + irods_url)
