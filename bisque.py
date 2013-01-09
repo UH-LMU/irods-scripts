@@ -4,6 +4,7 @@ import logging
 import os.path
 import urllib
 import xml.etree.ElementTree as ET
+#from xml.etree.ElementTree import Element,  SubElement
 
 import imeta
 from imeta import AVU
@@ -27,16 +28,17 @@ def is_image(filename):
     if ext in SUPPORTED_FORMATS:
         return True
     return False
-
+    
 def _avus2tags(avus):
-    tags = "<resource>"
+    resource = ET.Element("resource")
     for avu in avus:
         if not avu.a.startswith(ATTR_BISQUE_TEMPLATE):
-            tag = '<tag name=\"%s\" value=\"%s\"/>' % (avu.a, avu.v)
-            tags += tag
-            tags += '</resource>'
-    return tags
-    
+            tag = ET.SubElement(resource,"tag")
+            tag.set("name", avu.a)
+            tag.set("value", avu.v)
+
+    return ET.tostring(resource)
+
 
 class BisqueConnection:
 
@@ -55,6 +57,7 @@ class BisqueConnection:
             # send also iRODS metadata
             avus = iquest.get_metadata(irods_file)
             tags = _avus2tags(avus)
+            logger.debug("Tags: \n" + tags)
             #bisque_url += '?url=' + irods_url
             #bisque_url += '?url=' + irods_url
             bisque_url += "?" + urllib.urlencode( { 'url': irods_url, 'tags': tags})
@@ -99,14 +102,14 @@ class BisqueConnection:
         
         # prepare xml document describing the dataset
         resource = ET.Element("resource")
-        dataset = resource.SubElement("dataset")
+        dataset = ET.SubElement(resource, "dataset")
         for i in range(0, len(ids)):
             # get the bisque uri of the file
             uri = iquest.get_attribute(ids[i])
             if not uri.startswith("http"):
                 logger.warning("Invalid Bisque URI " + uri)
                 continue
-            value = dataset.SubElement("value")
+            value = ET.SubElement(dataset,"value")
             value.set("index",  str(i))
             value.set("type", "object")
             value.text = uri

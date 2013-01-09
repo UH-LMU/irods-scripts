@@ -40,13 +40,14 @@ def sorted_ls(path):
     return list(sorted(os.listdir(path), key=mtime,  reverse=True))
 
 def icd2ipwd():
-    path = "~/.irods"
+    path = os.path.join("~",".irods")
     path = os.path.expanduser(path)
     envfiles = sorted_ls(path)
     
     # find the latest .irodsEnv file
     for e in envfiles:
-        if e.startswith(".irodsEnv") != -1:
+        if e.startswith(".irodsEnv"):
+            print logger.debug(e)
             currentEnv = e.rstrip()
             break
     
