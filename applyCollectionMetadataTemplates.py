@@ -116,7 +116,7 @@ def main():
         logging.warning("Using current iRODS working directory (" + options.target + ") as target.")
    
     visitor = ApplyMetadataTemplateVisitor(options)
-    visitor = CollectionVisitor()
+    #visitor = CollectionVisitor()
     if options.extra_recursive:
         Walk(options.target,  visitor)
     else:
