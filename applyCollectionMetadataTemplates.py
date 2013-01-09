@@ -13,7 +13,9 @@ import iutils
 
 usage ="""%prog [options]
 
-Copy metadata from a template to a target. The target can be a single data object or a collection. The default target is the current collection (ipwd).
+Copy metadata from a template to a target. 
+- the target can be a single data object or a collection. 
+- the default target is the current collection (ipwd).
 Run '%prog -h' for options.
 """
 
@@ -126,13 +128,12 @@ def main():
         options.template = DEFAULT_COLL_META_TEMPLATE
 
     # check if template is an absolute path
-    if iquest.dataobject_exists(options.template):
-        logging.info("Using template " + options.template)
-    else:
-        logging.info(options.template + " is not an absolute path, searching in current iRODS directory " + ipwd + ".")
+    if iquest.dataobject_exists(ipwd + "/" + options.template):
         options.template = ipwd + "/" + options.template
+    else:
         if not iquest.dataobject_exists(options.template):
             parser.error("Template " + options.template + " not found.")
+    logging.info("Using template " + options.template)
 
     # check if target is an absolute path (file or folder)
     # start with assumption that user gave path relative to ipwd
@@ -148,7 +149,7 @@ def main():
         elif iquest.dataobject_exists(options.target):
             TARGET_IS_A_SINGLE_FILE = True
         else:
-            parser.error("Target not found")
+            parser.error("Target " + options.target + " not found")
         
         logging.info("Applying to target " + options.target)
 
