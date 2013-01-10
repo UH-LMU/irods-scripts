@@ -7,6 +7,7 @@ import os.path
 import subprocess
 import sys
 
+from createCollectionMetadataTemplate import DEFAULT_COLL_META_TEMPLATE
 import imeta
 import iquest
 import iutils
@@ -19,23 +20,22 @@ Copy metadata from a template to a target.
 Run '%prog -h' for options.
 """
 
-# file used to store collection metadata
-DEFAULT_COLL_META_TEMPLATE = "collectionMetadataTemplate"
 
 # attributes that are set by Ida
 ATTRIBUTES_SET_BY_IDA = ["Contact",  "Metadata modified",  "Modified",  "Metadata identifier",  "Identifier.version",  "Identifier.series" ]
+MISSING_METADATA = "MISSING_METADATA"
 
 def addMetadata2DataObject(avus,  target,  dryrun):
     for avu in avus:
         # don't touch metadata set by Ida
-        if avu.a not in ATTRIBUTES_SET_BY_IDA:
+        if avu.a not in ATTRIBUTES_SET_BY_IDA and avu.b != MISSING_METADATA:
             imeta.delete(target, avu,  dryrun)
             imeta.add(target, avu, dryrun)
 
 def deleteMetadataFromDataObject(avus,  target,  dryrun):
     for avu in avus:
         # don't touch metadata set by Ida
-        if avu.a not in ATTRIBUTES_SET_BY_IDA:
+        if avu.a not in ATTRIBUTES_SET_BY_IDA and avu.b != MISSING_METADATA:
             imeta.delete(target, avu,  dryrun)
 
 class CollectionVisitor:
