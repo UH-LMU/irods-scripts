@@ -10,7 +10,7 @@ import iquest
 import iutils
 
 IRODS_DEFAULT_HOST='irods://ida.csc.fi'
-BISQUE_DEFAULT_HOST='http://lmu-bisque1.biocenter.helsinki.fi'
+BISQUE_DEFAULT_HOST='https://lmu-bisque1.biocenter.helsinki.fi'
 
 logger = logging.getLogger(__name__)
 
