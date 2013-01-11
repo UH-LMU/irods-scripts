@@ -11,7 +11,7 @@ from imeta import AVU
 import iquest
 import iutils
 
-http = httplib2.Http()
+http = httplib2.Http(ca_certs="lmu-bisque1_nginx.pem")
 logger = logging.getLogger(__name__)
 
 ATTR_BISQUE_TEMPLATE = "bisque."
