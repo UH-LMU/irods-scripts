@@ -3,6 +3,7 @@ import httplib2
 import logging
 import os.path
 import urllib
+import urllib2
 import xml.etree.ElementTree as ET
 #from xml.etree.ElementTree import Element,  SubElement
 
@@ -44,7 +45,9 @@ class BisqueConnection:
 
     def __init__(self,  bisque_host,  username,  password):
         self.bisque_host = bisque_host
-        self.auth = {'authorization' : 'Basic '+base64.encodestring("%s:%s" % (username,password)).strip()}
+        self.bisque_user = username
+        self.bisque_pass = password
+        #self.auth = {'authorization' : 'Basic '+base64.encodestring("%s:%s" % (username,password)).strip()}
 
         
     def register_irods_file(self,  irods_host, irods_file,  dryrun=False):
@@ -58,15 +61,29 @@ class BisqueConnection:
             avus = iquest.get_metadata(irods_file)
             tags = _avus2tags(avus)
             logger.debug("Tags: \n" + tags)
-            #bisque_url += '?url=' + irods_url
-            #bisque_url += '?url=' + irods_url
-            bisque_url += "?" + urllib.urlencode( { 'url': irods_url, 'tags': tags})
+            #bisque_url += "?" + urllib.urlencode( { 'url': irods_url, 'tags': tags})
             logging.info( "POSTING " + bisque_url)
             if not dryrun:
-                resp,  content = http.request(bisque_url, headers = self.auth)
-                logger.debug(content)
+                try:
+                    request = urllib2.Request(bisque_url)
+                    request.add_header("authorization", 'Basic '+base64.encodestring("%s:%s" % (self.bisque_user,self.bisque_pass)).strip())
+                    resource = "<resource name='ida' value='%s'/>" % irods_url
+                    resource =  urllib.urlencode({"user" : self.bisque_user,  "irods_resource" : resource})
+                    request.add_data(resource)
+                    
+                    opener = urllib2.build_opener(
+                                                  urllib2.HTTPRedirectHandler(), 
+                                                  urllib2.HTTPHandler(debuglevel=0), 
+                                                  urllib2.HTTPSHandler(debuglevel=0))
+                    r = opener.open(request)
+                    response = r.read()
+                    logger.debug(response)
+                except Exception,  e:
+                    logger.error("Caught exception %s" % e)
+                    raise e
+
                 # read Bisque attributes from reply
-                image = ET.fromstring(content)
+                image = ET.fromstring(response)
                 resource_uniq = image.get("resource_uniq")
                 uri = image.get("uri")
                 logger.debug(resource_uniq)
