@@ -22,13 +22,16 @@ Run '%prog -h' for options.
 
 
 # attributes that are set by Ida
-ATTRIBUTES_SET_BY_IDA = ["Contact",  "Metadata modified",  "Modified",  "Metadata identifier",  "Identifier.version",  "Identifier.series" ]
+# http://www.csc.fi/sivut/ida/ohjeet/kayttoohjeet/Kuvailuvaatimus
+ATTRIBUTES_SET_BY_IDA = ["Metadata.identifier",  "Metadata.modified",  "Identifier.version",  "Identifier.series",  "Modified",  \
+                         "Contact.type", "Contact.name",  "Contact.email",  "Contact.phone",  \
+                         "Project.name",  "Project.funder",  "Project.funder_grant_number",  "Uploader"  ]
 MISSING_METADATA = "MISSING_METADATA"
 
 def addMetadata2DataObject(avus,  target,  dryrun):
     for avu in avus:
         # don't touch metadata set by Ida
-        if avu.a not in ATTRIBUTES_SET_BY_IDA and avu.b != MISSING_METADATA:
+        if avu.a not in ATTRIBUTES_SET_BY_IDA and avu.v != MISSING_METADATA:
             imeta.delete(target, avu,  dryrun)
             imeta.add(target, avu, dryrun)
 

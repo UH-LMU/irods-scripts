@@ -12,13 +12,15 @@ from imeta import AVU
 import iquest
 import iutils
 
+from applyCollectionMetadataTemplates import ATTRIBUTES_SET_BY_IDA
+
 http = httplib2.Http(ca_certs="lmu-bisque1_nginx.pem")
 logger = logging.getLogger(__name__)
 
 ATTR_BISQUE_TEMPLATE = "bisque."
 ATTR_BISQUE_URI = "bisque.uri"
 ATTR_BISQUE_RESOURCE_UNIQ = "bisque.resource_uniq"    
-BISQUE_ADD_IMAGE = "/import/insert/"
+BISQUE_ADD_IMAGE = "/import/insert_inplace"
 BISQUE_DATASET = "/data_service/dataset/"
 
 SUPPORTED_FORMATS = [".jpg", ".jpeg", ".png", ".tif", ".tiff", ".gif"]
@@ -33,14 +35,27 @@ def is_image(filename):
 def _avus2tags(avus):
     resource = ET.Element("resource")
     for avu in avus:
-        if not avu.a.startswith(ATTR_BISQUE_TEMPLATE):
+        if not avu.a.startswith(ATTR_BISQUE_TEMPLATE) and avu.a not in ATTRIBUTES_SET_BY_IDA:
             tag = ET.SubElement(resource,"tag")
             tag.set("name", avu.a)
             tag.set("value", avu.v)
 
     return ET.tostring(resource)
 
+def _create_resource(name,  value):
+    resource = ET.Element("resource")
+    resource.set("name",  name)
+    resource.set("value",  value)
+    return resource
 
+def _add_tags(resource,  avus):
+    for avu in avus:
+        if not avu.a.startswith(ATTR_BISQUE_TEMPLATE) and avu.a not in ATTRIBUTES_SET_BY_IDA:
+            tag = ET.SubElement(resource,"tag")
+            tag.set("name", avu.a)
+            tag.set("value", avu.v)
+
+    
 class BisqueConnection:
 
     def __init__(self,  bisque_host,  username,  password):
@@ -63,13 +78,18 @@ class BisqueConnection:
             logger.debug("Tags: \n" + tags)
             #bisque_url += "?" + urllib.urlencode( { 'url': irods_url, 'tags': tags})
             logging.info( "POSTING " + bisque_url)
+            
+            request = urllib2.Request(bisque_url)
+            request.add_header("authorization", 'Basic '+base64.encodestring("%s:%s" % (self.bisque_user,self.bisque_pass)).strip())
+            #resource = "<resource name='%s' value='%s'/>" % (os.path.basename(irods_url),  irods_url)
+            resource = _create_resource(os.path.basename(irods_url),  irods_url)
+            _add_tags(resource,  avus)
+            logger.debug("resource with tags\n" + ET.tostring(resource))
+            resource =  urllib.urlencode({"user" : self.bisque_user,  "irods_resource" : ET.tostring(resource)})
+            request.add_data(resource)
+
             if not dryrun:
                 try:
-                    request = urllib2.Request(bisque_url)
-                    request.add_header("authorization", 'Basic '+base64.encodestring("%s:%s" % (self.bisque_user,self.bisque_pass)).strip())
-                    resource = "<resource name='ida' value='%s'/>" % irods_url
-                    resource =  urllib.urlencode({"user" : self.bisque_user,  "irods_resource" : resource})
-                    request.add_data(resource)
                     
                     opener = urllib2.build_opener(
                                                   urllib2.HTTPRedirectHandler(), 
@@ -83,7 +103,8 @@ class BisqueConnection:
                     raise e
 
                 # read Bisque attributes from reply
-                image = ET.fromstring(response)
+                resource = ET.fromstring(response)
+                image = resource.find("image")
                 resource_uniq = image.get("resource_uniq")
                 uri = image.get("uri")
                 logger.debug(resource_uniq)
