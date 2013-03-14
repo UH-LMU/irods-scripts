@@ -23,7 +23,7 @@ ATTR_BISQUE_RESOURCE_UNIQ = "bisque.resource_uniq"
 BISQUE_ADD_IMAGE = "/import/insert_inplace"
 BISQUE_DATASET = "/data_service/dataset/"
 
-SUPPORTED_FORMATS = [".jpg", ".jpeg", ".png", ".tif", ".tiff", ".gif"]
+SUPPORTED_FORMATS = [".jpg", ".jpeg", ".png", ".tif", ".tiff", ".gif", ".ids", ".ics", ".sld"]
 
 def is_image(filename):
     file,  ext = os.path.splitext(filename)
