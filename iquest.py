@@ -121,3 +121,8 @@ def get_dataids_dataset(name):
     cmd = ["iquest",  "\"%s####%s####%s\"",  "select DATA_ID where META_DATA_ATTR_NAME = 'dataset' and META_DATA_ATTR_VALUE = '" + name + "'\""]
     logger.debug( " ".join(cmd))
     return getIquestOutput(cmd)
+    
+def get_collections_with_missing_metadata(root):
+    cmd = ["iquest",  "\"%s\"",  "select distinct(COLL_NAME) where META_DATA_ATTR_NAME = 'Title' and META_DATA_ATTR_VALUE = 'MISSING_METADATA'"]
+    logger.debug( " ".join(cmd))
+    return getIquestOutput(cmd)

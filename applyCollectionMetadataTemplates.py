@@ -50,23 +50,34 @@ class ApplyMetadataTemplateVisitor(CollectionVisitor):
         self.options = options
         
     def visit(self,  collection):
-        # use user-provided a template file, if none given, look for default files.
         template = None
-        if self.options.template:
-            template = self.options.template
-        else:
-            logging.info("Using default template file 'collectionMetadataTemplate'.")
+        if self.options.extra_recursive:
             test = collection + "/" + DEFAULT_COLL_META_TEMPLATE
+            logging.debug("Extra-recursive mode, looking for default template file '%s'." %  test)
             if iquest.dataobject_exists(test):
                 template = test
+                logging.info("Extra-recursive mode, using default template file '%s'." %  test)
+            else:
+                return
         
-        if not template:
-            logging.error("No template object found.")
-            return
+        else:
+        # use user-provided a template file, if none given, look for default files.
+            if self.options.template:
+                template = self.options.template
+            else:
+                logging.info("Using default template file 'collectionMetadataTemplate'.")
+                test = collection + "/" + DEFAULT_COLL_META_TEMPLATE
+                if iquest.dataobject_exists(test):
+                    template = test
+            
+            if not template:
+                logging.error("No template object found.")
+                return
                 
-        if not iquest.dataobject_has_metadata(template):
-            logging.error("Template object " + template + " has no metadata.")
-            return
+# this check is useless, all Ida objects have metadata
+#        if not iquest.dataobject_has_metadata(template):
+#            logging.error("Template object " + template + " has no metadata.")
+#            return
 
         # get the target dataobjects
         if self.options.recursive:
@@ -176,6 +187,7 @@ def main():
     visitor = ApplyMetadataTemplateVisitor(options)
     #visitor = CollectionVisitor()
     if options.extra_recursive:
+        options.recursive = True
         Walk(options.target,  visitor)
     else:
         visitor.visit(options.target)
