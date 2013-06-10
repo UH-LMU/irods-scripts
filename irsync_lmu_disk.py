@@ -11,7 +11,9 @@ config = sys.argv[1]
 tree = ET.parse(config)
 root = tree.getroot()
 
-logroot = sys.argv[2]
+irsync = sys.argv[2]
+logroot = sys.argv[3]
+me = sys.argv[4]
 
 for sync in root:
     user = sync.get("user")
@@ -24,7 +26,7 @@ for sync in root:
 
     log = logroot + "/irsync_" + ft + "_" + user + ".log"
 
-    cmd = "irsync -VKr %s %s >& %s" % (src,dst,log)
+    cmd = "%s -VKr %s %s >& %s" % (irsync,src,dst,log)
     print cmd
 
     # run command
@@ -36,15 +38,13 @@ for sync in root:
     msg = MIMEText(fp.read())
     fp.close()
 
-    # me == the sender's email address
-    # you == the recipient's email address
     msg['Subject'] = 'Ida transfer %s' % log
-    msg['From'] = 'lmu-storage@helsinki.fi'
+    msg['From'] = me
     msg['To'] = email
 
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
     s = smtplib.SMTP('localhost')
-    s.sendmail(me, [you], msg.as_string())
+    s.sendmail(me, [email], msg.as_string())
     s.quit()
     
