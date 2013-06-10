@@ -22,7 +22,7 @@ for sync in root:
     t = time.time()
     ft = datetime.datetime.fromtimestamp(t).strftime('%Y%m%d-%H%M%S')
 
-    log = logroot + "/irsync_" + user + "_" + ft + ".log"
+    log = logroot + "/irsync_" + ft + "_" + user + ".log"
 
     cmd = "irsync -VKr %s %s >& %s" % (src,dst,log)
     print cmd
