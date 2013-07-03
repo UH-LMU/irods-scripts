@@ -47,18 +47,22 @@ DEFAULT_RIGHTS_DECLARATION= ""
 def main():
     parser = OptionParser(usage=usage)
     parser.add_option('--title',  help='Concise description of the subject matter.')
-    parser.add_option('-b', '--title-lang',  default='en',  help='Title language.')
-    parser.add_option('-r', '--right-category', default=DEFAULT_RIGHTS_CATEGORY, help="")
+    parser.add_option('-b', '--title-lang',  default='eng',  help='Title language.')
+    parser.add_option('-r', '--rights-category', default=DEFAULT_RIGHTS_CATEGORY, help="")
     parser.add_option('-R', '--rights-declaration', default=DEFAULT_RIGHTS_DECLARATION, help="")
-    parser.add_option('-d', '--subject', default=False, help="Comma separated list of terms describing the subject.")
-    parser.add_option('-n', '--creator', default=False, help="")
-    parser.add_option('-v', '--owner', default=False, help="")
-    parser.add_option('-V', '--language', default='-', help="")
+    parser.add_option('-s', '--subject', default=False, help="Comma separated list of terms describing the subject.")
+    parser.add_option('-c', '--creator', default=False, help="")
+    parser.add_option('-o', '--owner', default=False, help="")
+    parser.add_option('-l', '--language', default='-', help="")
 
     options, args = parser.parse_args()
+
+    template = DEFAULT_COLL_META_TEMPLATE
+    if len(args) > 0:
+        template = args[0]
+    print template
     
-    print options.title
-    print options.title_lang
+
     
 
 if __name__ == "__main__":
