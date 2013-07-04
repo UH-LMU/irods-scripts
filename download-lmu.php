@@ -48,7 +48,8 @@ try {
   
   // prepare download task file
   $taskdir = '/tmp/ida_downloads/';
-  $iget = '/opt/iRODS/iRODS_3.2/clients/icommands/bin/iget -V';
+  //$iget = '/opt/iRODS/iRODS_3.2/clients/icommands/bin/iget -V';
+  $iget = '/opt/iRODS/iRODS_3.2/clients/icommands/bin/irsync -sV';
   $timestamp = date('Ymd-His', time());
   $user = $parent->account->user;
   $tmpfilename = $taskdir.'tmp_'.$timestamp.'_'.$user.'.sh';
@@ -64,7 +65,8 @@ try {
     if (strlen($filename)>0)
     {
       //$myfile=new ProdsFile($parent->account,$parent->path_str.'/'.$filename);
-      fwrite($tmpfile, $iget.' "'.$parent->path_str.'/'.$filename.'" '.$dstdir."\n");
+      //fwrite($tmpfile, $iget.' "'.$parent->path_str.'/'.$filename.'" '.$dstdir."\n");
+      fwrite($tmpfile, $iget.' "i:'.$parent->path_str.'/'.$filename.'" '.$dstdir."\n");
       $num_files++;
     }
   }
@@ -76,7 +78,8 @@ try {
     if (strlen($dirname)>0)
     {
       //$mydir=new ProdsDir($parent->account,$parent->path_str.'/'.$dirname);
-      fwrite($tmpfile, 'iget -v -r "'.$parent->path_str.'/'.$dirname.'" '.$dstdir."\n");
+      //fwrite($tmpfile, $iget.' -r "'.$parent->path_str.'/'.$dirname.'" '.$dstdir."\n");
+      fwrite($tmpfile, $iget.' -r "i:'.$parent->path_str.'/'.$dirname.'" '.$dstdir."\n");
       $num_dirs++;
     }
   }

@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+# idadownloadd       
+#
+# chkconfig: - 85 15
+# description: A server for starting download jobs  \
+#	       from CSC's Ida service.
+# processname: idadownloadd
+# pidfile: /var/run/idadownloadd.pid
+#
+### BEGIN INIT INFO
+# Provides: idadownloadd
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Run as this user
+user=hajaalin
+
+# Path to binary, and short-form for messages.
+idadownloadd=/opt/LMU/irods-scripts/ida_download_pyinotify.py
+prog=idadownloadd
+
+log=/var/log/LMU/idadownloadd.log
+pidfile=${PIDFILE-/var/run/idadownloadd.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/idadownloadd}
+
+
+RETVAL=0
+STOP_TIMEOUT=${STOP_TIMEOUT-1}
+
+start() {
+        echo -n $"Starting $prog: "
+   	if [ -s ${pidfile} ]; then
+       	    RETVAL=1
+            echo -n "Already running !" && warning
+            echo
+        else
+            nohup runuser $user -c ${idadownloadd} > $log 2>&1 &
+            RETVAL=$?
+            PID=$!
+            [ $RETVAL -eq 0 ] && touch ${lockfile} && success || failure
+            echo
+            echo $PID > ${pidfile}
+        fi
+}
+
+stop() {
+	echo -n $"Stopping $prog: "
+	killproc -p ${pidfile} -d ${STOP_TIMEOUT} ${idadownloadd}
+	RETVAL=$?
+	echo
+	[ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+        status -p ${pidfile} ${idadownloadd}
+	RETVAL=$?
+	;;
+  restart)
+	stop
+	start
+	;;
+  condrestart|try-restart)
+	if status -p ${pidfile} ${idadownloadd} >&/dev/null; then
+		stop
+		start
+	fi
+	;;
+  force-reload|reload)
+        reload
+	;;
+  graceful|help|configtest|fullstatus)
+	$apachectl $@
+	RETVAL=$?
+	;;
+  *)
+	echo $"Usage: $prog {start|stop|restart|condrestart|try-restart|status|fullstatus|graceful|help|configtest}"
+	RETVAL=2
+esac
+
+exit $RETVAL

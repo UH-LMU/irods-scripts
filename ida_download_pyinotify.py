@@ -4,12 +4,12 @@ import subprocess
 import sys
 import pyinotify
 
-IGET = "/opt/LMU/irods-scripts/iget_to_lmu_disk.py"
+RUNCMDS = "/opt/LMU/irods-scripts/runcmds.py"
 
 class EventHandler(pyinotify.ProcessEvent):
     def process_IN_MOVED_TO(self, event):
         if event.name.startswith("download_"):
-            cmd = [IGET,event.pathname]
+            cmd = [RUNCMDS,event.pathname]
             print "Starting download task: ", cmd
             
             # start new process for the download task

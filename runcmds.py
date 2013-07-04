@@ -27,7 +27,7 @@ for irsync in root.findall('irsync'):
     #print irsync.attrib
     if irsync.get('user') == user:
         email = irsync.get('email')
-print 'email to ' + email
+print 'Email: ' + email
 
 # log file name
 head,tail = os.path.split(taskfile)
@@ -35,6 +35,8 @@ log = logroot + "/" + tail.replace('.sh','.log')
 
 # run command
 cmd = "%s >> %s 2>&1" % (taskfile,log)
+print 'Command: ', cmd
+print
 logfile = open(log,'w')
 print >> logfile, cmd
 print >> logfile
