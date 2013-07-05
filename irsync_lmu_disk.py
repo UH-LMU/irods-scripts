@@ -34,17 +34,22 @@ for sync in root:
 
     # mail log to user
     fp = open(log, 'rb')
+    lines = fp.readlines()
+
     # Create a text/plain message
     msg = MIMEText(fp.read())
     fp.close()
 
-    msg['Subject'] = 'Ida transfer %s' % log
-    msg['From'] = me
-    msg['To'] = email
+    # 7 lines means nothing happened
+    if lines.length > 7:
 
-    # Send the message via our own SMTP server, but don't include the
-    # envelope header.
-    s = smtplib.SMTP('localhost')
-    s.sendmail(me, [email], msg.as_string())
-    s.quit()
+        msg['Subject'] = 'Ida transfer %s' % log
+        msg['From'] = me
+        msg['To'] = email
+
+        # Send the message via our own SMTP server, but don't include the
+        # envelope header.
+        s = smtplib.SMTP('localhost')
+        s.sendmail(me, [email], msg.as_string())
+        s.quit()
     
