@@ -19,6 +19,9 @@ result = re.search('_([a-z,A-Z]*).sh', taskfile)
 user = result.group(1)
 print 'User: ', user
 
+# subject of email sent to user
+subject = sys.argv[2]
+
 # find user's email from config file
 email = me 
 tree = ET.parse(config)
@@ -50,7 +53,7 @@ fp = open(log, 'rb')
 msg = MIMEText(fp.read())
 fp.close()
 
-msg['Subject'] = 'Ida transfer %s' % log
+msg['Subject'] = subject
 msg['From'] = me
 msg['To'] = email
 
