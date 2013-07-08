@@ -44,6 +44,7 @@ logfile = open(log,'w')
 print >> logfile, cmd
 print >> logfile
 print >> logfile, 'Downloading to LMU2/FROM_IDA/' + user + ':'
+print >> logfile
 logfile.close()
 os.system(cmd)
 

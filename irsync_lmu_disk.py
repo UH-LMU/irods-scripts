@@ -41,11 +41,13 @@ for sync in root:
     fp.close()
 
     # 7 lines means nothing happened
-    if lines.length > 7:
+    if len(lines) > 7:
 
         msg['Subject'] = 'Ida transfer %s' % log
         msg['From'] = me
         msg['To'] = email
+        
+        #print email
 
         # Send the message via our own SMTP server, but don't include the
         # envelope header.
