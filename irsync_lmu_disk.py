@@ -37,7 +37,7 @@ for sync in root:
     lines = fp.readlines()
 
     # Create a text/plain message
-    msg = MIMEText(fp.read())
+    msg = MIMEText("".join(lines))
     fp.close()
 
     # 7 lines means nothing happened
@@ -47,7 +47,7 @@ for sync in root:
         msg['From'] = me
         msg['To'] = email
         
-        #print email
+        print email
 
         # Send the message via our own SMTP server, but don't include the
         # envelope header.
@@ -55,3 +55,4 @@ for sync in root:
         s.sendmail(me, [email], msg.as_string())
         s.quit()
     
+    sys.exit(0)
