@@ -55,4 +55,4 @@ for sync in root:
         s.sendmail(me, [email], msg.as_string())
         s.quit()
     
-    sys.exit(0)
+    #sys.exit(0)
