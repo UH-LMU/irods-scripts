@@ -9,7 +9,7 @@ from email.mime.text import MIMEText
 import time
 import xml.etree.ElementTree as ET
 
-config = '/opt/LMU/irsync_config.xml'
+config = '/opt/LMU/irsync_config_root.xml'
 logroot = '/var/log/LMU/iget_from_ida'
 me = 'lmu-storage@helsinki.fi'
 

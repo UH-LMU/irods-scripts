@@ -40,6 +40,18 @@ def list_child_collections(collection):
 
     return getIquestOutput(cmd)
 
+def list_child_collections_owned_by(root, owner):
+    cmd = ["iquest","--no-page", "\"%s\"", "\"select COLL_NAME where COLL_NAME like '" + root + "%' and COLL_OWNER_NAME = '" + owner + "'\""]
+    logger.debug( " ".join(cmd))
+
+    return getIquestOutput(cmd)
+
+def list_child_dataobjects_owned_by(root, owner):
+    cmd = ["iquest","--no-page", "\"%s/%s\"", "\"select COLL_NAME,DATA_NAME where COLL_NAME like '" + root + "%' and COLL_OWNER_NAME = '" + owner + "'\""]
+    logger.debug( " ".join(cmd))
+
+    return getIquestOutput(cmd)
+
 def collection_exists(coll):
     cmd = ["iquest",  "\"%s\"",  "\"select count(COLL_ID) where COLL_NAME = '"+ coll + "'\""]
     logger.debug( " ".join(cmd))

@@ -17,6 +17,7 @@ me = sys.argv[4]
 
 for sync in root:
     user = sync.get("user")
+    iuser = sync.get("iuser")
     src = sync.get("src")
     dst = sync.get("dst")
     email = sync.get("email")
@@ -25,9 +26,15 @@ for sync in root:
     ft = datetime.datetime.fromtimestamp(t).strftime('%Y%m%d-%H%M%S')
 
     log = logroot + "/irsync_" + ft + "_" + user + ".log"
-
-    cmd = "%s -VKr %s %s >& %s" % (irsync,src,dst,log)
+    #f = open(log,'w')
+    #cmd = "%s -VKr %s %s >& %s" % (irsync,src,dst,log)
+    #cmd = "sudo -u %s -i %s -VKr %s %s >& %s" % (user,irsync,src,dst,log)
+    cmd = "su -c \"%s -VKr %s %s >& %s\" -l %s" % (irsync,src,dst,log,user)
+    #print >> f, cmd
     print cmd
+    #f.close()
+
+    #sys.exit()
 
     # run command
     os.system(cmd)

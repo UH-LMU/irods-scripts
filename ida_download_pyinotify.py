@@ -18,6 +18,6 @@ class EventHandler(pyinotify.ProcessEvent):
 handler = EventHandler()
 wm = pyinotify.WatchManager()
 notifier = pyinotify.Notifier(wm, handler)
-wm.add_watch('/tmp/ida_downloads', pyinotify.IN_MOVED_TO)
+wm.add_watch('/var/log/LMU/ida_download_tasks', pyinotify.IN_MOVED_TO)
 
 notifier.loop()
