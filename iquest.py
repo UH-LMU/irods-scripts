@@ -138,3 +138,35 @@ def get_collections_with_missing_metadata(root):
     cmd = ["iquest",  "\"%s\"",  "select distinct(COLL_NAME) where META_DATA_ATTR_NAME = 'Title' and META_DATA_ATTR_VALUE = 'MISSING_METADATA'"]
     logger.debug( " ".join(cmd))
     return getIquestOutput(cmd)
+
+def get_usage(coll):
+    cmd = ["iquest", "\"%s\"", "select sum(DATA_SIZE) where COLL_NAME like '/ida/hy/hy7004/" + coll + "%'"]
+    logger.debug( " ".join(cmd))
+    return getIquestOutput(cmd)
+
+def get_file_count(coll):
+    cmd = ["iquest", "\"%s\"", "select count(DATA_ID) where COLL_NAME like '/ida/hy/hy7004/" + coll + "%'"]
+    logger.debug( " ".join(cmd))
+    return getIquestOutput(cmd)
+
+def get_file_count_and_data_size(coll,  resc_groups=""):
+    select = "select count(DATA_ID),sum(DATA_SIZE) where COLL_NAME like '" + coll + "%'"
+    if resc_groups != "":
+        select = select + " and DATA_RESC_GROUP_NAME in (%s)" % resc_groups
+    cmd = ["iquest", "\"%s,%s\"", select]
+    logger.debug( " ".join(cmd))
+
+    files = 0
+    bytes = 0
+    result = getIquestOutput(cmd)
+    #print "result",  result
+    if result[0]:
+        #print "result0",  result[0]
+        files, bytes = result[0].split(",")
+        if not bytes:
+            bytes = "0"
+            
+        gigabytes = float(bytes) / 1024 / 1024 / 1024
+        #print "files",  files,  "bytes",  bytes,  "GB",  gigabytes
+    
+    return int(files), int(gigabytes)
