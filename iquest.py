@@ -165,8 +165,5 @@ def get_file_count_and_data_size(coll,  resc_groups=""):
         files, bytes = result[0].split(",")
         if not bytes:
             bytes = "0"
-            
-        gigabytes = float(bytes) / 1024 / 1024 / 1024
-        #print "files",  files,  "bytes",  bytes,  "GB",  gigabytes
-    
-    return int(files), int(gigabytes)
+                
+    return int(files), int(bytes)

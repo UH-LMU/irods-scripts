@@ -52,7 +52,7 @@ def log_raw():
             head, name = os.path.split(u)
             filename = LOGDIRDAILY + "usage_" + group_name + "_" + name + "-" + ft + ".log"
             file = open(filename,  'w')
-            print >> file, "# Ida usage of user '%s' on %s, file count and GB" % (u, ft)
+            print >> file, "# Ida usage of user '%s' on %s, file count and bytes" % (u, ft)
             print >> file,  files,  datasize
             file.close()
 
@@ -60,14 +60,14 @@ def log_raw():
         head, name = os.path.split(u)
         filename = LOGDIRDAILY + "usage_group_" + group_name + "-" + ft + ".log"
         file = open(filename,  'w')
-        print >> file, "# Ida usage of '%s' on %s, file count and GB" % (g, ft)
+        print >> file, "# Ida usage of '%s' on %s, file count and bytes" % (g, ft)
         print >> file,  files,  datasize
         file.close()
 
     # write LMU total usage
     filename = LOGDIRDAILY + "usage_HY7004-" + ft + ".log"
     file = open(filename,  'w')
-    print >> file, "# Ida usage of HY7004 on %s, file count and GB" % (ft)
+    print >> file, "# Ida usage of HY7004 on %s, file count and bytes" % (ft)
     print >> file,  lmu_files,  lmu_datasize
     file.close()
 
@@ -81,8 +81,10 @@ def read_daily_log(filename):
     lines = file.readlines()
     file.close()
 
-    files,  gigas = lines[1].rstrip().split()
-    return int(files),  int(gigas)
+    files,  bytes = lines[1].rstrip().split()
+    gigabytes = float(bytes) / 1024 / 1024 / 1024
+ 
+    return int(files),  int(gigabytes)
 
 
 def log_summary():
