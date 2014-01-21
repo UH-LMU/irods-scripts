@@ -102,5 +102,18 @@ def main():
     for irods_file in entries:
         bisque.register_irods_file(irods_host,  irods_file,  options.dryrun)
 
+
+import cProfile, pstats, StringIO
 if __name__ == "__main__":
+    pr = cProfile.Profile()
+    pr.enable()
+    # ... do something ...
     main()
+    pr.disable()
+    s = StringIO.StringIO()
+    sortby = 'cumulative'
+    ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+    ps.print_stats()
+    print s.getvalue()
+
+    #main()
