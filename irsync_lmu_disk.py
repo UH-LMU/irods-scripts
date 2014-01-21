@@ -84,10 +84,12 @@ def main():
         log = logroot + "/irsync_" + ft + "_" + user + ".log"
         cmd = "su -c \"%s -VKr %s %s >& %s\" -l %s" % (irsync,src,dst,log,user)
 #        cmd = "echo \"%s -VKr %s %s >& %s\" -l %s" % (irsync,src,dst,log,user)
+
+        cmd = cmd.encode("utf-8")
         print cmd
     
         # run command
-        os.system(cmd.encode("utf-8"))
+        os.system(cmd)
     
         notify(me,email,log)
 
