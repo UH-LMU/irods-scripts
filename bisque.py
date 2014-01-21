@@ -105,17 +105,21 @@ class BisqueConnection:
                 # read Bisque attributes from reply
                 resource = ET.fromstring(response)
                 image = resource.find("image")
-                resource_uniq = image.get("resource_uniq")
-                uri = image.get("uri")
-                logger.debug(resource_uniq)
-                logger.debug(uri)
-                # store Bisque attributes in iRODS metadata
-                if iquest.dataobject_has_attribute(irods_file,  ATTR_BISQUE_URI):
-                    logging.warning("File '" + irods_file + "' was already registered in Bisque.")
-                    imeta.delete(irods_file, AVU(ATTR_BISQUE_URI,"", ""))
-                    imeta.delete(irods_file, AVU(ATTR_BISQUE_RESOURCE_UNIQ,"", ""))
-                imeta.add(irods_file, AVU(ATTR_BISQUE_URI,  uri))
-                imeta.add(irods_file, AVU(ATTR_BISQUE_RESOURCE_UNIQ,  resource_uniq))
+                
+                if image:
+                    resource_uniq = image.get("resource_uniq")
+                    uri = image.get("uri")
+                    logger.debug(resource_uniq)
+                    logger.debug(uri)
+                    # store Bisque attributes in iRODS metadata
+                    if iquest.dataobject_has_attribute(irods_file,  ATTR_BISQUE_URI):
+                        logging.warning("File '" + irods_file + "' was already registered in Bisque.")
+                        imeta.delete(irods_file, AVU(ATTR_BISQUE_URI,"", ""))
+                        imeta.delete(irods_file, AVU(ATTR_BISQUE_RESOURCE_UNIQ,"", ""))
+                    imeta.add(irods_file, AVU(ATTR_BISQUE_URI,  uri))
+                    imeta.add(irods_file, AVU(ATTR_BISQUE_RESOURCE_UNIQ,  resource_uniq))
+                else:
+                    logger.warning("Received resource other than 'image': " + response )
 
         else:
             logger.info("Unsupported file format, skipping " + irods_url)
