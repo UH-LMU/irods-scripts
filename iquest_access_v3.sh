@@ -1,26 +1,37 @@
 #!/bin/bash
 
 #
-# Author: Taneli Riitaoja, CSC
+# Authors: Taneli Riitaoja, CSC
+#          Harri Jäälinoja, LMU
 #
+
+function debug() {
+  true
+  #echo "DEBUG: $1"
+}
 
 if [[ -z "$1" ]] || [[ -z "$2" ]]
 then
     exit 1
 fi
 
+# we will check the permissions of data in this collection
 colls=`iquest --no-page "%s" "SELECT COLL_NAME WHERE COLL_NAME LIKE '${1}%'"`
 
-coll_users=`iquest --no-page "%s###%s" "SELECT USER_NAME, USER_ID WHERE COLL_NAME LIKE '${2}%'"`
+# the permissions of this collection are used to list the users
+# who should have access to all data in the previous collection
+coll_users=`iquest --no-page "%s###%s" "SELECT USER_NAME, USER_ID WHERE COLL_NAME = '${2}'"`
 
 declare -A user_name_id_map
 
 declare -a groups
 
+debug "coll_users"
 while read line
 do
     user_name=`echo "$line" | awk -F"###" '{ print $1 }'`
     user_id=`echo "$line" | awk -F "###" '{ print $2 }'`
+    debug $user_name
     if [[ "$user_name" == *.* ]]
     then
         users=`igroupadmin lg "$user_name" | grep "#" | awk -F "#" '{ print $1 }'`
@@ -40,14 +51,19 @@ do
     fi
 done <<< "$coll_users"
 
+debug "colls"
 while read line
 do
+    debug $line
+
     group_own=()
     group_read=()
     group_write=()
 
+    debug "Groups"
     for group in "${groups[@]}"
     do
+        debug $group
 
         group_id=`echo "$group" | awk -F"###" '{ print $1 }'`
         group_name=`echo "$group" | awk -F"###" '{ print $2 }' | awk -F"%%%" '{ print $1 }'`
@@ -79,10 +95,19 @@ do
         done
     done
 
+    debug "Users"
     coll_access_string=""
+    readable_by_lmu="true"
     for uid in "${!user_name_id_map[@]}"
     do
         user_name="${user_name_id_map["$uid"]}"
+        debug $user_name
+        if [[ "$user_name" == "rods" ]] || [[ "$user_name" == "rodsadmin" ]]
+        then
+          debug "skipping $user_name"
+          continue
+        fi
+
         coll_access_info=`iquest --no-page "%s###%s" "SELECT COLL_ACCESS_USER_ID, COLL_ACCESS_NAME WHERE COLL_NAME = '${line}' AND COLL_ACCESS_USER_ID = '${uid}'" 2> /dev/null`
         if [[ "$?" != "0" ]] || [[ "$coll_access_info" == *"CAT"* ]]
         then
@@ -101,10 +126,17 @@ do
         else
             access_name=`echo "$coll_access_info" | awk -F"###" '{ print $2 }'`
         fi
-        #echo "DEBUG: $user_name $access_name $coll_access_info"
+
+        debug "$user_name $access_name $coll_access_info"
         coll_access_string+="${user_name_id_map["$uid"]}:${access_name} "
+        if [[ "$access_name" == "null" ]]
+        then
+          readable_by_lmu="false"
+        fi
     done
 
-    echo "${line}"
-    echo "${coll_access_string}"
+    if [[ "$readable_by_lmu" == "false" ]]
+    then
+      echo "Collection not readable by LMU: ${line}; permissions: ${coll_access_string}"
+    fi
 done <<< "$colls"
